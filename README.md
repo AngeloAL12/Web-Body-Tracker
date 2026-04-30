@@ -1,73 +1,46 @@
-# React + TypeScript + Vite
+# Brazo Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Real-time right arm tracking using webcam + MediaPipe Holistic. Measures elbow angle, shoulder elevation, and pincer grip state — overlaid live on the video feed.
 
-Currently, two official plugins are available:
+## What it tracks
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Metric | Description |
+|--------|-------------|
+| **Codo** | Elbow flexion angle (shoulder–elbow–wrist) |
+| **Hombro** | Shoulder elevation angle (hip–shoulder–elbow) |
+| **Pinza** | Pincer grip state: `Abierta` / `Cerrada` |
+| **Dist.** | Thumb-tip to index-tip distance (normalized) |
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript
+- MediaPipe Holistic (pose + hand landmarks)
+- Vite
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open `http://localhost:5173` and allow webcam access. Model loads from CDN on first run.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm build
+pnpm preview
 ```
+
+## Architecture
+
+```
+src/
+├── hooks/useHolistic.ts      # MediaPipe init, camera loop, landmark math
+├── components/ArmTracker.tsx # Video + canvas overlay + stats panel
+├── components/StatsPanel.tsx # Angle/grip display
+└── utils/angles.ts           # calcAngle (3D dot product) + landmarkDistance
+```
+
+MediaPipe model runs at 1280×720. Pose landmarks use right-side indices (shoulder 12, elbow 14, wrist 16, hip 24). Pincer closes when thumb–index distance < 0.08 (normalized coords).
