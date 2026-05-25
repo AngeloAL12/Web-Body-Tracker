@@ -107,3 +107,134 @@
 .pincer[data-state='Abierta'] {
   color: #4ade80;
 }
+
+.serial-control {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: #fff;
+  font-family: ui-monospace, monospace;
+  min-width: 200px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.serial-status {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.serial-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6b7280;
+  flex-shrink: 0;
+}
+
+.serial-status--connected .serial-status__dot  { background: #4ade80; }
+.serial-status--connecting .serial-status__dot { background: #facc15; }
+.serial-status--error .serial-status__dot      { background: #f87171; }
+.serial-status--unavailable .serial-status__dot { background: #facc15; }
+
+.serial-status--error .serial-status__message      { color: #f87171; font-size: 11px; }
+.serial-status--unavailable .serial-status__message { color: #facc15; font-size: 11px; }
+
+.serial-btn {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  background: transparent;
+}
+
+.serial-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.serial-btn--connect {
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+.serial-btn--connect:hover:not(:disabled) {
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.serial-btn--disconnect {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.serial-btn--disconnect:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.serial-btn__hint {
+  opacity: 0.55;
+  font-size: 11px;
+}
+
+.grip-lock-status {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grip-lock-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  flex-shrink: 0;
+}
+
+.grip-lock-status--locked .grip-lock-status__dot {
+  background: #facc15;
+}
+
+.grip-lock-status--locked {
+  color: #facc15;
+}
+
+@keyframes lock-flash {
+  0%   { opacity: 1; transform: scale(1); }
+  30%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.grip-lock-status--flash {
+  animation: lock-flash 0.4s ease-out;
+}
+
+.pinch-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.pinch-progress__bar {
+  height: 100%;
+  border-radius: 2px;
+  background: #facc15;
+  transition: width 0.05s linear;
+}
