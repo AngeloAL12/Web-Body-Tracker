@@ -24,6 +24,10 @@ export function StatsPanel({ stats }: StatsPanelProps) {
         <span className="stat-value">{fmt(stats.shoulderElevation)}°</span>
       </div>
       <div className="stat-row">
+        <span className="stat-label">Muñeca</span>
+        <span className="stat-value">{fmt(stats.wristAngle)}°</span>
+      </div>
+      <div className="stat-row">
         <span className="stat-label">Pinza</span>
         <span
           className="stat-value pincer"

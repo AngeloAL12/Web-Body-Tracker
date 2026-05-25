@@ -17,13 +17,15 @@ const PINCER_THRESHOLD = 0.08;
 export interface ArmStats {
   elbowAngle: number | null;
   shoulderElevation: number | null;
+  wristAngle: number | null;
   pincerDistance: number | null;
   pincerState: "Cerrada" | "Abierta" | null;
   fps: number | null;
   ready: boolean;
   rawShoulder: { x: number; y: number; z: number } | null;
   rawElbow: { x: number; y: number; z: number } | null;
-  rightFist: boolean;  // true when right hand is making a fist
+  rawWrist: { x: number; y: number; z: number } | null;
+  rightFist: boolean;
 }
 
 export function useHolistic(
@@ -33,12 +35,14 @@ export function useHolistic(
   const [stats, setStats] = useState<ArmStats>({
     elbowAngle: null,
     shoulderElevation: null,
+    wristAngle: null,
     pincerDistance: null,
     pincerState: null,
     fps: null,
     ready: false,
     rawShoulder: null,
     rawElbow: null,
+    rawWrist: null,
     rightFist: false,
   });
 
@@ -128,6 +132,7 @@ export function useHolistic(
       const pose = results.poseLandmarks;
       let elbowAngle: number | null = null;
       let shoulderElevation: number | null = null;
+      let wristAngle: number | null = null;
 
       if (pose?.length) {
         const shoulder = pose[SHOULDER];
@@ -140,6 +145,15 @@ export function useHolistic(
         }
         if (hip && shoulder && elbow) {
           shoulderElevation = calcAngle(hip, shoulder, elbow);
+        }
+
+        // Wrist flex/extension: elbow → wrist → middle finger MCP (index 9 in right hand)
+        const rh = results.rightHandLandmarks;
+        if (elbow && wrist && rh?.length) {
+          const middleMcp = rh[9];
+          if (middleMcp) {
+            wristAngle = calcAngle(elbow, wrist, middleMcp);
+          }
         }
       }
 
@@ -159,6 +173,7 @@ export function useHolistic(
 
       const rawShoulder = pose?.[SHOULDER] ?? null;
       const rawElbow = pose?.[ELBOW] ?? null;
+      const rawWrist = pose?.[WRIST] ?? null;
 
       // Fist: all fingertips curled (tip.y > pip.y in normalized coords, since y grows downward)
       const TIPS = [8, 12, 16, 20];
@@ -170,12 +185,14 @@ export function useHolistic(
       setStats({
         elbowAngle,
         shoulderElevation,
+        wristAngle,
         pincerDistance,
         pincerState,
         fps: Math.max(0, Number(smoothFps.toFixed(1))),
         ready: true,
         rawShoulder: rawShoulder ? { x: rawShoulder.x, y: rawShoulder.y, z: rawShoulder.z } : null,
         rawElbow: rawElbow ? { x: rawElbow.x, y: rawElbow.y, z: rawElbow.z } : null,
+        rawWrist: rawWrist ? { x: rawWrist.x, y: rawWrist.y, z: rawWrist.z } : null,
         rightFist,
       });
     });
