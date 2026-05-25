@@ -1,4 +1,5 @@
 import type { ArmStats } from "../hooks/useHolistic";
+import { BaseGauge } from "./BaseGauge";
 
 interface StatsPanelProps {
   stats: ArmStats;
@@ -11,6 +12,7 @@ export function StatsPanel({ stats }: StatsPanelProps) {
   return (
     <div className="stats-panel">
       <h3>Brazo Derecho</h3>
+      <BaseGauge angle={stats.baseAngle} />
       <div className="stat-row">
         <span className="stat-label">FPS</span>
         <span className="stat-value">{fmt(stats.fps)}</span>

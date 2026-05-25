@@ -26,6 +26,8 @@ export interface ArmStats {
   rawElbow: { x: number; y: number; z: number } | null;
   rawWrist: { x: number; y: number; z: number } | null;
   rightFist: boolean;
+  bothHandsOpen: boolean;
+  baseAngle: number | null; // 0–180, 90 = arm center, left/right from shoulder→wrist X axis
 }
 
 export function useHolistic(
@@ -44,6 +46,8 @@ export function useHolistic(
     rawElbow: null,
     rawWrist: null,
     rightFist: false,
+    bothHandsOpen: false,
+    baseAngle: null,
   });
 
   const cameraRef = useRef<Camera | null>(null);
@@ -182,6 +186,13 @@ export function useHolistic(
       const rightFist = rh != null && rh.length > 0
         && TIPS.every((tip, i) => rh[tip] && rh[PIPS[i]] && rh[tip].y > rh[PIPS[i]].y);
 
+      // Open hand: all fingertips extended (tip.y < pip.y)
+      const lh = results.leftHandLandmarks;
+      const isHandOpen = (landmarks: typeof rh) =>
+        landmarks != null && landmarks.length > 0
+        && TIPS.every((tip, i) => landmarks[tip] && landmarks[PIPS[i]] && landmarks[tip].y < landmarks[PIPS[i]].y);
+      const bothHandsOpen = isHandOpen(lh) && isHandOpen(rh);
+
       setStats({
         elbowAngle,
         shoulderElevation,
@@ -194,6 +205,21 @@ export function useHolistic(
         rawElbow: rawElbow ? { x: rawElbow.x, y: rawElbow.y, z: rawElbow.z } : null,
         rawWrist: rawWrist ? { x: rawWrist.x, y: rawWrist.y, z: rawWrist.z } : null,
         rightFist,
+        bothHandsOpen,
+        baseAngle: (() => {
+          const tip = rawWrist ?? rawElbow;
+          if (!rawShoulder || !tip) return null;
+          const vx = tip.x - rawShoulder.x;
+          const vy = tip.y - rawShoulder.y;
+          // Use 2D (image-plane) length only — MediaPipe Z is noisy and washes out X
+          const len2d = Math.hypot(vx, vy);
+          if (len2d < 0.05) return null; // arm too close to shoulder, unreliable
+          // normX: negative = arm to user's right (image left), positive = arm to user's left
+          // negate vx to match mirrored video (scaleX(-1))
+          const normX = -(vx / len2d);
+          // map -1..+1 to 0..180
+          return (normX + 1) * 90;
+        })(),
       });
     });
 

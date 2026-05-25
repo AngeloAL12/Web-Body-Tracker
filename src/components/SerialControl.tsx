@@ -18,6 +18,7 @@ export function SerialControl({ status, onConnect, onDisconnect, gripLocked, pin
           {status.kind === "unavailable" && "Web Serial no disponible (usa Chrome/Edge)"}
           {status.kind === "disconnected" && "Desconectado"}
           {status.kind === "connecting" && "Conectando..."}
+          {status.kind === "countdown" && `Conectando en ${status.seconds}...`}
           {status.kind === "connected" && "Puerto conectado"}
           {status.kind === "error" && status.message}
         </span>
@@ -49,6 +50,11 @@ export function SerialControl({ status, onConnect, onDisconnect, gripLocked, pin
       {status.kind === "connecting" && (
         <button className="serial-btn serial-btn--connect" disabled>
           Conectando...
+        </button>
+      )}
+      {status.kind === "countdown" && (
+        <button className="serial-btn serial-btn--connect" disabled>
+          Conectando en {status.seconds}...
         </button>
       )}
       {status.kind === "connected" && (

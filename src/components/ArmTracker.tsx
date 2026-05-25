@@ -25,8 +25,58 @@ export function ArmTracker() {
   const lockCooldownRef = useRef(false);
   const rafRef = useRef<number | null>(null);
 
+  const [gestureCountdown, setGestureCountdown] = useState<number | null>(null);
+  const gestureStartRef = useRef<number | null>(null);
+  const gestureRafRef = useRef<number | null>(null);
+  const gestureFiredRef = useRef(false);
+
   const stats = useHolistic(videoRef, canvasRef);
   const serial = useSerial(50);
+
+  const GESTURE_HOLD_MS = 3000;
+
+  useEffect(() => {
+    const canConnect = serial.status.kind === "disconnected" || serial.status.kind === "error";
+    if (!canConnect) {
+      if (gestureRafRef.current !== null) cancelAnimationFrame(gestureRafRef.current);
+      gestureRafRef.current = null;
+      gestureStartRef.current = null;
+      gestureFiredRef.current = false;
+      setGestureCountdown(null);
+      return;
+    }
+
+    if (stats.bothHandsOpen && !gestureFiredRef.current) {
+      if (gestureStartRef.current === null) {
+        gestureStartRef.current = performance.now();
+      }
+
+      const tick = () => {
+        if (gestureStartRef.current === null) return;
+        const elapsed = performance.now() - gestureStartRef.current;
+        const remaining = Math.ceil((GESTURE_HOLD_MS - elapsed) / 1000);
+        setGestureCountdown(Math.max(remaining, 1));
+
+        if (elapsed >= GESTURE_HOLD_MS) {
+          gestureFiredRef.current = true;
+          setGestureCountdown(null);
+          void serial.connect();
+        } else {
+          gestureRafRef.current = requestAnimationFrame(tick);
+        }
+      };
+
+      if (gestureRafRef.current === null) {
+        gestureRafRef.current = requestAnimationFrame(tick);
+      }
+    } else if (!stats.bothHandsOpen) {
+      if (gestureRafRef.current !== null) cancelAnimationFrame(gestureRafRef.current);
+      gestureRafRef.current = null;
+      gestureStartRef.current = null;
+      gestureFiredRef.current = false;
+      setGestureCountdown(null);
+    }
+  }, [stats.bothHandsOpen, serial]);
 
   // Animate progress bar while right fist is held
   useEffect(() => {
@@ -126,6 +176,12 @@ export function ArmTracker() {
       {!stats.ready && (
         <div className="loading-overlay">
           <span>Cargando modelo...</span>
+        </div>
+      )}
+      {gestureCountdown !== null && (
+        <div className="gesture-countdown">
+          <span className="gesture-countdown__number">{gestureCountdown}</span>
+          <span className="gesture-countdown__label">Conectando...</span>
         </div>
       )}
       <StatsPanel stats={stats} />

@@ -4,6 +4,7 @@ export type SerialStatus =
   | { kind: "unavailable" }
   | { kind: "disconnected" }
   | { kind: "connecting" }
+  | { kind: "countdown"; seconds: number }
   | { kind: "connected"; port: SerialPort }
   | { kind: "error"; message: string };
 
@@ -47,8 +48,24 @@ export function useSerial(intervalMs = 50): SerialHook {
     }
     setStatus({ kind: "connecting" });
     try {
-      const port = await navigator.serial.requestPort();
+      const knownPorts = await navigator.serial.getPorts();
+      const port = knownPorts.length > 0 ? knownPorts[0] : await navigator.serial.requestPort();
       await port.open({ baudRate: 115200 });
+
+      await new Promise<void>((resolve) => {
+        let remaining = 3;
+        setStatus({ kind: "countdown", seconds: remaining });
+        const tick = setInterval(() => {
+          remaining -= 1;
+          if (remaining <= 0) {
+            clearInterval(tick);
+            resolve();
+          } else {
+            setStatus({ kind: "countdown", seconds: remaining });
+          }
+        }, 1000);
+      });
+
       const writer = port.writable.getWriter() as WritableStreamDefaultWriter<Uint8Array>;
       writerRef.current = writer;
       writingRef.current = false;

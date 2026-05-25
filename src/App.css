@@ -238,3 +238,65 @@
   background: #facc15;
   transition: width 0.05s linear;
 }
+
+.base-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.base-gauge__value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.base-gauge__label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.base-gauge__number {
+  font-size: 18px;
+  font-weight: 700;
+  transition: color 0.2s;
+}
+
+.gesture-countdown {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.gesture-countdown__number {
+  font-family: ui-monospace, monospace;
+  font-size: 160px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(74, 222, 128, 0.8), 0 4px 24px rgba(0, 0, 0, 0.8);
+  animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+.gesture-countdown__label {
+  font-family: ui-monospace, monospace;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes countdown-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.06); }
+}
