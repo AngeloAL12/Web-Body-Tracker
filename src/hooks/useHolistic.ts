@@ -26,6 +26,7 @@ export interface ArmStats {
   rawElbow: { x: number; y: number; z: number } | null;
   rawWrist: { x: number; y: number; z: number } | null;
   rightFist: boolean;
+  rightPeaceSign: boolean;
   bothHandsOpen: boolean;
   baseAngle: number | null; // 0–180, 90 = arm center, left/right from shoulder→wrist X axis
 }
@@ -46,6 +47,7 @@ export function useHolistic(
     rawElbow: null,
     rawWrist: null,
     rightFist: false,
+    rightPeaceSign: false,
     bothHandsOpen: false,
     baseAngle: null,
   });
@@ -186,6 +188,13 @@ export function useHolistic(
       const rightFist = rh != null && rh.length > 0
         && TIPS.every((tip, i) => rh[tip] && rh[PIPS[i]] && rh[tip].y > rh[PIPS[i]].y);
 
+      // Peace sign: index (8) + middle (12) extended, ring (16) + pinky (20) curled
+      const rightPeaceSign = rh != null && rh.length > 0
+        && rh[8] && rh[6] && rh[8].y < rh[6].y     // index extended
+        && rh[12] && rh[10] && rh[12].y < rh[10].y  // middle extended
+        && rh[16] && rh[14] && rh[16].y > rh[14].y  // ring curled
+        && rh[20] && rh[18] && rh[20].y > rh[18].y; // pinky curled
+
       // Open hand: all fingertips extended (tip.y < pip.y)
       const lh = results.leftHandLandmarks;
       const isHandOpen = (landmarks: typeof rh) =>
@@ -205,6 +214,7 @@ export function useHolistic(
         rawElbow: rawElbow ? { x: rawElbow.x, y: rawElbow.y, z: rawElbow.z } : null,
         rawWrist: rawWrist ? { x: rawWrist.x, y: rawWrist.y, z: rawWrist.z } : null,
         rightFist,
+        rightPeaceSign,
         bothHandsOpen,
         baseAngle: (() => {
           const tip = rawWrist ?? rawElbow;

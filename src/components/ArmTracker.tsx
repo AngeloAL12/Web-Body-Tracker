@@ -20,6 +20,10 @@ export function ArmTracker() {
   const [gripLocked, setGripLocked] = useState(false);
   const [pinchProgress, setPinchProgress] = useState(0); // 0–1
   const [lockFlash, setLockFlash] = useState(false);
+  const [lockedBase, setLockedBase] = useState<number>(90);
+  const baseDirectionRef = useRef<1 | -1>(1);
+  const baseRafRef = useRef<number | null>(null);
+  const lastBaseTimeRef = useRef<number | null>(null);
 
   const pinchStartRef = useRef<number | null>(null);
   const lockCooldownRef = useRef(false);
@@ -78,9 +82,9 @@ export function ArmTracker() {
     }
   }, [stats.bothHandsOpen, serial]);
 
-  // Animate progress bar while right fist is held
+  // Animate progress bar while peace sign is held
   useEffect(() => {
-    const fisting = stats.rightFist;
+    const fisting = stats.rightPeaceSign;
 
     if (fisting && !lockCooldownRef.current) {
       if (pinchStartRef.current === null) {
@@ -115,6 +119,39 @@ export function ArmTracker() {
       if (!fisting) lockCooldownRef.current = false;
       setPinchProgress(0);
     }
+  }, [stats.rightPeaceSign]);
+
+  const BASE_SPEED = 45; // degrees per second
+
+  useEffect(() => {
+    if (stats.rightFist) {
+      lastBaseTimeRef.current = performance.now();
+
+      const tick = () => {
+        const now = performance.now();
+        const dt = (now - (lastBaseTimeRef.current ?? now)) / 1000;
+        lastBaseTimeRef.current = now;
+
+        setLockedBase((prev) => {
+          let next = prev + baseDirectionRef.current * BASE_SPEED * dt;
+          if (next >= 180) { next = 180; baseDirectionRef.current = -1; }
+          if (next <= 0) { next = 0; baseDirectionRef.current = 1; }
+          return next;
+        });
+
+        baseRafRef.current = requestAnimationFrame(tick);
+      };
+
+      baseRafRef.current = requestAnimationFrame(tick);
+      return () => {
+        if (baseRafRef.current !== null) cancelAnimationFrame(baseRafRef.current);
+        baseRafRef.current = null;
+      };
+    } else {
+      if (baseRafRef.current !== null) cancelAnimationFrame(baseRafRef.current);
+      baseRafRef.current = null;
+      lastBaseTimeRef.current = null;
+    }
   }, [stats.rightFist]);
 
   useEffect(() => {
@@ -135,8 +172,7 @@ export function ArmTracker() {
         ? newLs
         : prev.ls;
 
-    const useBase = Math.abs(raw.base - prev.base) <= BASE_MAX_JUMP ? raw.base : prev.base;
-    const targetBase = Math.abs(useBase - prev.base) > BASE_DEADBAND ? useBase : prev.base;
+    const targetBase = lockedBase;
 
     const smoothed: ServoValues = {
       base: prev.base + ALPHA_BASE * (targetBase - prev.base),
@@ -184,7 +220,7 @@ export function ArmTracker() {
           <span className="gesture-countdown__label">Conectando...</span>
         </div>
       )}
-      <StatsPanel stats={stats} />
+      <StatsPanel stats={stats} lockedBase={lockedBase} />
       <SerialControl
         status={serial.status}
         onConnect={serial.connect}

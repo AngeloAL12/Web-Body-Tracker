@@ -1,8 +1,8 @@
 import type { ArmStats } from "../hooks/useHolistic";
-import { BaseGauge } from "./BaseGauge";
 
 interface StatsPanelProps {
   stats: ArmStats;
+  lockedBase: number;
 }
 
 export function StatsPanel({ stats }: StatsPanelProps) {
@@ -12,8 +12,7 @@ export function StatsPanel({ stats }: StatsPanelProps) {
   return (
     <div className="stats-panel">
       <h3>Brazo Derecho</h3>
-      <BaseGauge angle={stats.baseAngle} />
-      <div className="stat-row">
+<div className="stat-row">
         <span className="stat-label">FPS</span>
         <span className="stat-value">{fmt(stats.fps)}</span>
       </div>
@@ -41,6 +40,18 @@ export function StatsPanel({ stats }: StatsPanelProps) {
       <div className="stat-row">
         <span className="stat-label">Dist.</span>
         <span className="stat-value">{fmt(stats.pincerDistance, 3)}</span>
+      </div>
+      <div className="stat-row">
+        <span className="stat-label">Puño</span>
+        <span className="stat-value" style={{ color: stats.rightFist ? "#4ade80" : "rgba(255,255,255,0.4)" }}>
+          {stats.rightFist ? "SÍ" : "NO"}
+        </span>
+      </div>
+      <div className="stat-row">
+        <span className="stat-label">Paz</span>
+        <span className="stat-value" style={{ color: stats.rightPeaceSign ? "#4ade80" : "rgba(255,255,255,0.4)" }}>
+          {stats.rightPeaceSign ? "SÍ" : "NO"}
+        </span>
       </div>
     </div>
   );

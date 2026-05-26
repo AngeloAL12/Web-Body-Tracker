@@ -239,33 +239,6 @@
   transition: width 0.05s linear;
 }
 
-.base-gauge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  margin-bottom: 4px;
-}
-
-.base-gauge__value {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.base-gauge__label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.base-gauge__number {
-  font-size: 18px;
-  font-weight: 700;
-  transition: color 0.2s;
-}
-
 .gesture-countdown {
   position: absolute;
   inset: 0;
